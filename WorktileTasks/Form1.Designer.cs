@@ -103,7 +103,7 @@
             textBoxUrl.Name = "textBoxUrl";
             textBoxUrl.Size = new Size(639, 38);
             textBoxUrl.TabIndex = 1;
-            textBoxUrl.Text = "https://office.project.sumpay.cn";
+            textBoxUrl.Text = "https://worktile.xxx.com";
             textBoxUrl.TextChanged += textBoxUrl_TextChanged;
             // 
             // richTextBoxInfo
