@@ -1,4 +1,9 @@
 ﻿using System;
+using System;
+using System;
+using System;
+using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -12,7 +17,7 @@ namespace WorktileTasks
         public static DataTable createDataTable()
         {
             // this method creates a data table
-            DataTable myDataTable = new DataTable();
+            DataTable myDataTable = new();
 
             myDataTable.Columns.Add("Name", typeof(string));
             myDataTable.Columns.Add("Date", typeof(string));

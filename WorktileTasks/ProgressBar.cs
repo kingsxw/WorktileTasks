@@ -37,7 +37,7 @@ namespace WorktileTasks
             if (Value > 0)
             {
                 // As we doing this ourselves we need to draw the chunks on the progress bar
-                Rectangle clip = new Rectangle(rect.X, rect.Y, (int)Math.Round(((float)Value / Maximum) * rect.Width), rect.Height);
+                Rectangle clip = new(rect.X, rect.Y, (int)Math.Round(((float)Value / Maximum) * rect.Width), rect.Height);
                 ProgressBarRenderer.DrawHorizontalChunks(g, clip);
             }
 
@@ -45,17 +45,15 @@ namespace WorktileTasks
             int percent = (int)(((double)this.Value / (double)this.Maximum) * 100);
             string text = DisplayStyle == ProgressBarDisplayText.Percentage ? percent.ToString() + '%' : CustomText;
 
-            using (Font f = new Font(FontFamily.GenericSerif, 10))
-            {
+            using Font f = new(FontFamily.GenericSerif, 10);
 
-                SizeF len = g.MeasureString(text, f);
-                // Calculate the location of the text (the middle of progress bar)
-                // Point location = new Point(Convert.ToInt32((rect.Width / 2) - (len.Width / 2)), Convert.ToInt32((rect.Height / 2) - (len.Height / 2)));
-                Point location = new Point(Convert.ToInt32((Width / 2) - len.Width / 2), Convert.ToInt32((Height / 2) - len.Height / 2));
-                // The commented-out code will centre the text into the highlighted area only. This will centre the text regardless of the highlighted area.
-                // Draw the custom text
-                g.DrawString(text, f, Brushes.WhiteSmoke, location);
-            }
+            SizeF len = g.MeasureString(text, f);
+            // Calculate the location of the text (the middle of progress bar)
+            // Point location = new Point(Convert.ToInt32((rect.Width / 2) - (len.Width / 2)), Convert.ToInt32((rect.Height / 2) - (len.Height / 2)));
+            Point location = new(Convert.ToInt32((Width / 2) - len.Width / 2), Convert.ToInt32((Height / 2) - len.Height / 2));
+            // The commented-out code will centre the text into the highlighted area only. This will centre the text regardless of the highlighted area.
+            // Draw the custom text
+            g.DrawString(text, f, Brushes.WhiteSmoke, location);
         }
     }
 }

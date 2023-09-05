@@ -54,6 +54,9 @@ namespace WorktileTasks
     {
         public string name { get; set; }
         public string id { get; set; }
+        public string typeid { get; set; }
+        public string projectid { get; set; }
+        public string deriveid { get; set; }
         public dynamic properties { get; set; }
 
     }
@@ -75,7 +78,8 @@ namespace WorktileTasks
         public static dynamic projectDetail { get; set; }
         public static string projectId { get; set; }
         public static string projectAllTaskId { get; set; }
-        public static string projectTaskId { get; set; }
+        public static string projectTaskTypeId { get; set; }
+        public static string projectDeriveTaskTypeId { get; set; }
         public static string kanbanId { get; set; }
         public static string taskTitle { get; set; }
         public static string newTaskId { get; set; }

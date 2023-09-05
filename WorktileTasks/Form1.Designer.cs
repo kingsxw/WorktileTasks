@@ -60,7 +60,11 @@
             comboBoxMyTask = new ComboBox();
             tabControl1 = new TabControl();
             tabPage1 = new TabPage();
+            textBoxDeriveTaskTitle = new TextBox();
+            checkBoxAsDeriveTask = new CheckBox();
             tabPage2 = new TabPage();
+            textBoxDeriveTaskTitle1 = new TextBox();
+            checkBoxAsDeriveTask1 = new CheckBox();
             labelProgress = new Label();
             labelCsv = new Label();
             richTextBoxProgress = new RichTextBox();
@@ -190,7 +194,7 @@
             // 
             // textBoxTaskTitle
             // 
-            textBoxTaskTitle.Location = new Point(170, 61);
+            textBoxTaskTitle.Location = new Point(170, 47);
             textBoxTaskTitle.Name = "textBoxTaskTitle";
             textBoxTaskTitle.Size = new Size(247, 38);
             textBoxTaskTitle.TabIndex = 19;
@@ -199,7 +203,7 @@
             // labelWorkloadDuration
             // 
             labelWorkloadDuration.AutoSize = true;
-            labelWorkloadDuration.Location = new Point(38, 217);
+            labelWorkloadDuration.Location = new Point(38, 231);
             labelWorkloadDuration.Name = "labelWorkloadDuration";
             labelWorkloadDuration.Size = new Size(110, 31);
             labelWorkloadDuration.TabIndex = 20;
@@ -216,7 +220,7 @@
             // 
             // numericUpDownWorkloadDuration
             // 
-            numericUpDownWorkloadDuration.Location = new Point(170, 215);
+            numericUpDownWorkloadDuration.Location = new Point(170, 229);
             numericUpDownWorkloadDuration.Maximum = new decimal(new int[] { 24, 0, 0, 0 });
             numericUpDownWorkloadDuration.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             numericUpDownWorkloadDuration.Name = "numericUpDownWorkloadDuration";
@@ -287,7 +291,7 @@
             // 
             radioButtonNewTask.AutoSize = true;
             radioButtonNewTask.Checked = true;
-            radioButtonNewTask.Location = new Point(23, 62);
+            radioButtonNewTask.Location = new Point(23, 48);
             radioButtonNewTask.Name = "radioButtonNewTask";
             radioButtonNewTask.Size = new Size(141, 35);
             radioButtonNewTask.TabIndex = 24;
@@ -309,12 +313,12 @@
             // 
             // comboBoxMyTask
             // 
+            comboBoxMyTask.Enabled = false;
             comboBoxMyTask.FormattingEnabled = true;
             comboBoxMyTask.Location = new Point(170, 138);
             comboBoxMyTask.Name = "comboBoxMyTask";
             comboBoxMyTask.Size = new Size(247, 39);
             comboBoxMyTask.TabIndex = 26;
-            comboBoxMyTask.Visible = false;
             comboBoxMyTask.SelectedIndexChanged += comboBoxMyTask_SelectedIndexChanged;
             // 
             // tabControl1
@@ -333,6 +337,8 @@
             // 
             tabPage1.BackColor = Color.Transparent;
             tabPage1.BorderStyle = BorderStyle.FixedSingle;
+            tabPage1.Controls.Add(textBoxDeriveTaskTitle);
+            tabPage1.Controls.Add(checkBoxAsDeriveTask);
             tabPage1.Controls.Add(comboBoxMyTask);
             tabPage1.Controls.Add(radioButtonExist);
             tabPage1.Controls.Add(textBoxTaskTitle);
@@ -351,8 +357,33 @@
             tabPage1.Text = "手动添加";
             tabPage1.Click += tabPage1_Click;
             // 
+            // textBoxDeriveTaskTitle
+            // 
+            textBoxDeriveTaskTitle.BackColor = SystemColors.Window;
+            textBoxDeriveTaskTitle.Enabled = false;
+            textBoxDeriveTaskTitle.Location = new Point(268, 180);
+            textBoxDeriveTaskTitle.Name = "textBoxDeriveTaskTitle";
+            textBoxDeriveTaskTitle.Size = new Size(200, 38);
+            textBoxDeriveTaskTitle.TabIndex = 28;
+            // 
+            // checkBoxAsDeriveTask
+            // 
+            checkBoxAsDeriveTask.AutoSize = true;
+            checkBoxAsDeriveTask.Enabled = false;
+            checkBoxAsDeriveTask.Location = new Point(58, 179);
+            checkBoxAsDeriveTask.Name = "checkBoxAsDeriveTask";
+            checkBoxAsDeriveTask.Size = new Size(214, 35);
+            checkBoxAsDeriveTask.TabIndex = 27;
+            checkBoxAsDeriveTask.Text = "作为子任务添加";
+            checkBoxAsDeriveTask.UseVisualStyleBackColor = true;
+            checkBoxAsDeriveTask.CheckedChanged += checkBoxAsDeriveTask_CheckedChanged;
+            // 
             // tabPage2
             // 
+            tabPage2.BackColor = Color.Transparent;
+            tabPage2.BorderStyle = BorderStyle.FixedSingle;
+            tabPage2.Controls.Add(textBoxDeriveTaskTitle1);
+            tabPage2.Controls.Add(checkBoxAsDeriveTask1);
             tabPage2.Controls.Add(labelProgress);
             tabPage2.Controls.Add(labelCsv);
             tabPage2.Controls.Add(richTextBoxProgress);
@@ -372,6 +403,26 @@
             tabPage2.Text = "批量添加";
             tabPage2.UseVisualStyleBackColor = true;
             tabPage2.Click += tabPage2_Click;
+            // 
+            // textBoxDeriveTaskTitle1
+            // 
+            textBoxDeriveTaskTitle1.Enabled = false;
+            textBoxDeriveTaskTitle1.Location = new Point(270, 104);
+            textBoxDeriveTaskTitle1.Name = "textBoxDeriveTaskTitle1";
+            textBoxDeriveTaskTitle1.Size = new Size(200, 38);
+            textBoxDeriveTaskTitle1.TabIndex = 18;
+            // 
+            // checkBoxAsDeriveTask1
+            // 
+            checkBoxAsDeriveTask1.AutoSize = true;
+            checkBoxAsDeriveTask1.Enabled = false;
+            checkBoxAsDeriveTask1.Location = new Point(50, 107);
+            checkBoxAsDeriveTask1.Name = "checkBoxAsDeriveTask1";
+            checkBoxAsDeriveTask1.Size = new Size(214, 35);
+            checkBoxAsDeriveTask1.TabIndex = 17;
+            checkBoxAsDeriveTask1.Text = "作为子任务添加";
+            checkBoxAsDeriveTask1.UseVisualStyleBackColor = true;
+            checkBoxAsDeriveTask1.CheckedChanged += checkBoxAsDeriveTask1_CheckedChanged;
             // 
             // labelProgress
             // 
@@ -430,8 +481,9 @@
             // 
             // comboBoxMyTask1
             // 
+            comboBoxMyTask1.Enabled = false;
             comboBoxMyTask1.FormattingEnabled = true;
-            comboBoxMyTask1.Location = new Point(174, 73);
+            comboBoxMyTask1.Location = new Point(174, 59);
             comboBoxMyTask1.Name = "comboBoxMyTask1";
             comboBoxMyTask1.Size = new Size(242, 39);
             comboBoxMyTask1.TabIndex = 4;
@@ -440,7 +492,7 @@
             // radioButtonExist1
             // 
             radioButtonExist1.AutoSize = true;
-            radioButtonExist1.Location = new Point(23, 73);
+            radioButtonExist1.Location = new Point(23, 59);
             radioButtonExist1.Name = "radioButtonExist1";
             radioButtonExist1.Size = new Size(141, 35);
             radioButtonExist1.TabIndex = 3;
@@ -452,7 +504,7 @@
             // 
             radioButtonNewTask2.AutoSize = true;
             radioButtonNewTask2.Checked = true;
-            radioButtonNewTask2.Location = new Point(23, 245);
+            radioButtonNewTask2.Location = new Point(23, 247);
             radioButtonNewTask2.Name = "radioButtonNewTask2";
             radioButtonNewTask2.Size = new Size(393, 35);
             radioButtonNewTask2.TabIndex = 2;
@@ -478,9 +530,9 @@
             progressBar1.CustomText = null;
             progressBar1.DisplayStyle = ProgressBarDisplayText.CustomText;
             progressBar1.Dock = DockStyle.Bottom;
-            progressBar1.Location = new Point(3, 647);
+            progressBar1.Location = new Point(3, 645);
             progressBar1.Name = "progressBar1";
-            progressBar1.Size = new Size(1263, 36);
+            progressBar1.Size = new Size(1261, 36);
             progressBar1.Style = ProgressBarStyle.Continuous;
             progressBar1.TabIndex = 16;
             progressBar1.Visible = false;
@@ -522,7 +574,7 @@
             Controls.Add(labelUrl);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Form1";
-            Text = "Worktile工时导入";
+            Text = "Worktile工时导入 v0.9.9_20230905_RC";
             FormClosing += Form1_FormClosing;
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)wTBindingSourceProject).EndInit();
@@ -585,5 +637,9 @@
         private CustomProgressBar progressBar1;
         private Label labelProgress;
         private Button buttonExit;
+        private CheckBox checkBoxAsDeriveTask;
+        private TextBox textBoxDeriveTaskTitle;
+        private TextBox textBoxDeriveTaskTitle1;
+        private CheckBox checkBoxAsDeriveTask1;
     }
 }

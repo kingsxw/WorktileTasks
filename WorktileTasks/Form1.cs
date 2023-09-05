@@ -141,16 +141,22 @@ namespace WorktileTasks
         private void comboBoxTask_SelectedIndexChanged(object sender, EventArgs e)
         {
             var selected = comboBoxTaskType.SelectedItem;
-            WT.projectTaskId = ((TaskList)selected).id;
+            //WT.projectTaskTypeId = ((TaskList)selected).id;
             WT.assigneeId = Worktile.GetId(((TaskList)selected).properties, "负责人");
             WT.dueId = Worktile.GetId(((TaskList)selected).properties, "截止时间");
 
-            richTextBoxInfo.Text = $"ProjectTaskId: {WT.projectTaskId} \nProjectId: {WT.projectId}";
+            richTextBoxInfo.Text = $"ProjectTaskId: {WT.projectTaskTypeId} \nProjectId: {WT.projectId}";
 
         }
 
         private async void buttonApplyTask_Click(object sender, EventArgs e)
         {
+            if (WT.cookie == null)
+            {
+                MessageBox.Show("请先登录！");
+                return;
+            }
+
             if (string.IsNullOrEmpty(WT.workloadDescription))
             {
                 MessageBox.Show("工时描述不能为空！");
@@ -164,9 +170,25 @@ namespace WorktileTasks
                     MessageBox.Show("新建任务标题不能为空！");
                     return;
                 }
-                await Worktile.AddNewTask();
+                await Worktile.AddTask();
             }
-
+            else
+            {
+                if (checkBoxAsDeriveTask.Checked)
+                {
+                    if (string.IsNullOrEmpty(textBoxDeriveTaskTitle.Text))
+                    {
+                        MessageBox.Show("子任务标题不能为空！");
+                        return;
+                    }
+                    WT.taskTitle = textBoxDeriveTaskTitle.Text;
+                    await Worktile.AddDeriveTask();
+                }
+                else
+                {
+                    WT.taskId = ((TaskList)comboBoxMyTask.SelectedItem).id;
+                }
+            }
             await Worktile.AddWorkload();
             string t = ("\n" + WT.taskTitle + ", " + Worktile.GetDate(WT.workloadTimestamp).ToString("yyMMdd") + "," + WT.workloadDuration + " 导入成功");
             //MessageBox.Show(t);
@@ -227,8 +249,14 @@ namespace WorktileTasks
             if (radioButtonExist.Checked)
             {
                 WT.isCreatNewTask = false;
-                comboBoxMyTask.Visible = true;
-                textBoxTaskTitle.Visible = false;
+                comboBoxMyTask.Enabled = true;
+                textBoxTaskTitle.Enabled = false;
+                checkBoxAsDeriveTask.Enabled = true;
+                if (checkBoxAsDeriveTask.Checked)
+                    textBoxDeriveTaskTitle.Enabled = true;
+                {
+
+                }
             }
         }
 
@@ -238,8 +266,10 @@ namespace WorktileTasks
             {
                 WT.isCreatNewTask = true;
                 WT.taskId = WT.newTaskId;
-                comboBoxMyTask.Visible = false;
-                textBoxTaskTitle.Visible = true;
+                comboBoxMyTask.Enabled = false;
+                textBoxTaskTitle.Enabled = true;
+                checkBoxAsDeriveTask.Enabled = false;
+                textBoxDeriveTaskTitle.Enabled = false;
             }
         }
 
@@ -247,6 +277,8 @@ namespace WorktileTasks
         {
             var selected = comboBoxMyTask.SelectedItem;
             WT.taskId = ((TaskList)selected).id;
+            WT.projectDeriveTaskTypeId = ((TaskList)selected).deriveid;
+            WT.projectTaskTypeId = ((TaskList)selected).typeid;
         }
 
         private void tabPage1_Click(object sender, EventArgs e)
@@ -262,12 +294,14 @@ namespace WorktileTasks
         private void buttonDownloadCsv_Click(object sender, EventArgs e)
         {
             DataTable dataTable = CsvCreator.createDataTable();
-            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-            saveFileDialog1.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            saveFileDialog1.DereferenceLinks = false;
-            saveFileDialog1.Filter = "csv文件(*.csv)|*.csv";
-            saveFileDialog1.FilterIndex = 1;
-            saveFileDialog1.DefaultExt = "csv";
+            SaveFileDialog saveFileDialog1 = new()
+            {
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                DereferenceLinks = false,
+                Filter = "csv文件(*.csv)|*.csv",
+                FilterIndex = 1,
+                DefaultExt = "csv"
+            };
             DialogResult dr = saveFileDialog1.ShowDialog();
             if (dr == DialogResult.OK)
             {
@@ -280,17 +314,19 @@ namespace WorktileTasks
 
         private void buttonUploadCsv_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog1 = new OpenFileDialog();
-            //openFileDialog1.InitialDirectory = @"Desktop";
-            openFileDialog1.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            //openFileDialog1.RestoreDirectory = true;
-            openFileDialog1.DereferenceLinks = false;
-            openFileDialog1.Filter = "csv文件(*.csv)|*.csv";
-            openFileDialog1.FilterIndex = 1;
-            openFileDialog1.Title = "导入工时CSV";
-            openFileDialog1.DefaultExt = "csv";
-            openFileDialog1.CheckFileExists = true;
-            openFileDialog1.CheckPathExists = true;
+            OpenFileDialog openFileDialog1 = new()
+            {
+                //openFileDialog1.InitialDirectory = @"Desktop";
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                //openFileDialog1.RestoreDirectory = true;
+                DereferenceLinks = false,
+                Filter = "csv文件(*.csv)|*.csv",
+                FilterIndex = 1,
+                Title = "导入工时CSV",
+                DefaultExt = "csv",
+                CheckFileExists = true,
+                CheckPathExists = true
+            };
             //openFileDialog1.ShowDialog();
 
 
@@ -299,7 +335,7 @@ namespace WorktileTasks
                 labelCsv.Text = openFileDialog1.FileName;
                 labelProgress.Text = "内容预览";
                 //Get the selected file path
-                string filePath = openFileDialog1.FileName;
+                //string filePath = openFileDialog1.FileName;
 
                 WT.csvFile = openFileDialog1.FileName;
                 // Read the contents of the file
@@ -320,73 +356,91 @@ namespace WorktileTasks
 
         private async void buttonImportCsv_Click(object sender, EventArgs e)
         {
-            using (StreamReader reader = new StreamReader(WT.csvFile, Encoding.GetEncoding("gb2312")))
-            using (var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
+            if (WT.cookie == null)
+            {
+                MessageBox.Show("请先登录！");
+                return;
+            }
+
+            using StreamReader reader = new(WT.csvFile, Encoding.GetEncoding("gb2312"));
+            using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 HeaderValidated = null,
                 MissingFieldFound = null,
                 PrepareHeaderForMatch = args => args.Header.ToLower()
-            }))
+            });
+            int progress = 0;
+            var records = csv.GetRecords<Workload>().ToList();
+            int count = records.Count;
+
+
+            //StartProgress(progress, count);
+            richTextBoxProgress.Text = "";
+            labelProgress.Text = "导入进度";
+            if (radioButtonExist1.Checked)
             {
-                int progress = 0;
-                var records = csv.GetRecords<Workload>().ToList();
-                int count = records.Count();
-
-
-                //StartProgress(progress, count);
-                richTextBoxProgress.Text = "";
-                labelProgress.Text = "导入进度";
-                if (radioButtonExist1.Checked)
+                if (checkBoxAsDeriveTask1.Checked)
                 {
-                    foreach (var record in records)
+                    if (string.IsNullOrEmpty(textBoxDeriveTaskTitle1.Text))
                     {
-                        progress++;
-                        WT.workloadDuration = (int)record.Duration;
-                        WT.workloadTimestamp = Worktile.GetTimestamp(record.Date);
-                        WT.workloadDescription = record.Description;
-                        await Worktile.AddWorkload();
-                        string t = (progress + "：" + WT.taskTitle + ", " + record.Date.ToString("yyMMdd") + "," + record.Duration + "导入成功" + "\n");
-                        //MessageBox.Show(t);
-                        //MessageBox.Show("Pause");
-                        //Thread.Sleep(10000);
-                        richTextBoxProgress.Text += t;
-                        StartProgress(progress, count);
-                        Thread.Sleep(100);
+                        MessageBox.Show("子任务标题不能为空！");
+                        return;
                     }
+                    WT.taskTitle = textBoxDeriveTaskTitle1.Text;
+                    await Worktile.AddDeriveTask();
                 }
                 else
                 {
-                    foreach (var record in records)
-                    {
-                        progress++;
-                        if (radioButtonNewTask1.Checked)
-                        {
-                            WT.taskTitle = record.Name;
-                        }
-                        else
-                        {
-                            WT.taskTitle = record.Date.ToString("yyMMdd") + "_" + record.Name;
-                        }
-
-                        WT.workloadDuration = (int)record.Duration;
-                        WT.workloadTimestamp = Worktile.GetTimestamp(record.Date);
-                        WT.workloadDescription = record.Description;
-                        await Worktile.AddNewTask();
-                        await Worktile.AddWorkload();
-                        string t = (progress + "：" + WT.taskTitle + ", " + record.Date.ToString("yyMMdd") + "," + record.Duration + "导入成功" + "\n");
-                        //MessageBox.Show(t);
-                        //MessageBox.Show("Pause");
-                        //Thread.Sleep(10000);
-                        richTextBoxProgress.Text += t;
-                        StartProgress(progress, count);
-                        Thread.Sleep(100);
-                    }
+                    WT.taskId = ((TaskList)comboBoxMyTask1.SelectedItem).id;
                 }
-
-
-
-                MessageBox.Show("所有工时导入成功，共计" + count.ToString() + "条");
+                foreach (var record in records)
+                {
+                    progress++;
+                    WT.workloadDuration = (int)record.Duration;
+                    WT.workloadTimestamp = Worktile.GetTimestamp(record.Date);
+                    WT.workloadDescription = record.Description;
+                    await Worktile.AddWorkload();
+                    string t = (progress + "：" + WT.taskTitle + ", " + record.Date.ToString("yyMMdd") + "," + record.Duration + "导入成功" + "\n");
+                    //MessageBox.Show(t);
+                    //MessageBox.Show("Pause");
+                    //Thread.Sleep(10000);
+                    richTextBoxProgress.Text += t;
+                    StartProgress(progress, count);
+                    Thread.Sleep(100);
+                }
             }
+            else
+            {
+                foreach (var record in records)
+                {
+                    progress++;
+                    if (radioButtonNewTask1.Checked)
+                    {
+                        WT.taskTitle = record.Name;
+                    }
+                    else
+                    {
+                        WT.taskTitle = record.Date.ToString("yyMMdd") + "_" + record.Name;
+                    }
+
+                    WT.workloadDuration = (int)record.Duration;
+                    WT.workloadTimestamp = Worktile.GetTimestamp(record.Date);
+                    WT.workloadDescription = record.Description;
+                    await Worktile.AddTask();
+                    await Worktile.AddWorkload();
+                    string t = (progress + "：" + WT.taskTitle + ", " + record.Date.ToString("yyMMdd") + "," + record.Duration + "导入成功" + "\n");
+                    //MessageBox.Show(t);
+                    //MessageBox.Show("Pause");
+                    //Thread.Sleep(10000);
+                    richTextBoxProgress.Text += t;
+                    StartProgress(progress, count);
+                    Thread.Sleep(100);
+                }
+            }
+
+
+
+            MessageBox.Show("所有工时导入成功，共计" + count.ToString() + "条");
         }
 
         private void comboBoxMyTask1_SelectedIndexChanged(object sender, EventArgs e)
@@ -403,8 +457,27 @@ namespace WorktileTasks
 
         private void radioButtonExist1_CheckedChanged(object sender, EventArgs e)
         {
-            var selected = comboBoxMyTask1.SelectedItem;
-            WT.taskTitle = ((TaskList)selected).name;
+            if (radioButtonExist1.Checked)
+            {
+                checkBoxAsDeriveTask1.Enabled = true;
+                comboBoxMyTask1.Enabled = true;
+                if (comboBoxMyTask1.SelectedItem != null)
+                {
+                    var selected = comboBoxMyTask1.SelectedItem;
+                    WT.taskTitle = ((TaskList)selected).name;
+                }
+                if (checkBoxAsDeriveTask1.Checked)
+                    textBoxDeriveTaskTitle1.Enabled = true;
+                {
+                }
+            }
+            else
+            {
+                checkBoxAsDeriveTask1.Enabled = false;
+                comboBoxMyTask.Enabled = false;
+                textBoxDeriveTaskTitle1.Enabled = false;
+            }
+
         }
 
         private void radioButtonNewTask2_CheckedChanged(object sender, EventArgs e)
@@ -441,5 +514,42 @@ namespace WorktileTasks
         {
 
         }
+
+        private void checkBoxAsDeriveTask_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBoxAsDeriveTask.Checked)
+            {
+                textBoxDeriveTaskTitle.Enabled = true;
+            }
+            else
+            {
+                textBoxDeriveTaskTitle.Enabled = false;
+            }
+        }
+
+        private void checkBoxAsDeriveTask1_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBoxAsDeriveTask1.Checked)
+            {
+                textBoxDeriveTaskTitle1.Enabled = true;
+            }
+            else
+            {
+                textBoxDeriveTaskTitle1.Enabled = false;
+            }
+        }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
